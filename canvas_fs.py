@@ -39,6 +39,8 @@ import errno
 import pyfuse3
 import trio
 
+from canvas_files import CanvasCourseFiles
+
 try:
 	import faulthandler
 except ImportError:
@@ -49,10 +51,12 @@ else:
 log = logging.getLogger(__name__)
 
 class TestFs(pyfuse3.Operations):
-	def __init__(self):
+	def __init__(self, course_id):
 		super(TestFs, self).__init__()
+		self.course = CanvasCourseFiles(course_id)
+
 		self.hello_name = b"message"
-		self.hello_inode = pyfuse3.ROOT_INODE+1
+		self.hello_inode = 2
 		self.hello_data = b"hello world\n"
 
 	async def getattr(self, inode, ctx=None):
@@ -60,11 +64,9 @@ class TestFs(pyfuse3.Operations):
 		if inode == pyfuse3.ROOT_INODE:
 			entry.st_mode = (stat.S_IFDIR | 0o755)
 			entry.st_size = 0
-		elif inode == self.hello_inode:
-			entry.st_mode = (stat.S_IFREG | 0o644)
-			entry.st_size = len(self.hello_data)
 		else:
-			raise pyfuse3.FUSEError(errno.ENOENT)
+			entry.st_mode = (stat.S_IFREG | 0o644)
+			entry.st_size = 80
 
 		stamp = int(1438467123.985654 * 1e9)
 		entry.st_atime_ns = stamp
@@ -79,20 +81,31 @@ class TestFs(pyfuse3.Operations):
 	async def lookup(self, parent_inode, name, ctx=None):
 		if parent_inode != pyfuse3.ROOT_INODE or name != self.hello_name:
 			raise pyfuse3.FUSEError(errno.ENOENT)
+
 		return self.getattr(self.hello_inode)
 
 	async def opendir(self, inode, ctx):
 		if inode != pyfuse3.ROOT_INODE:
 			raise pyfuse3.FUSEError(errno.ENOENT)
+
 		return inode
 
 	async def readdir(self, fh, start_id, token):
-		assert fh == pyfuse3.ROOT_INODE
+		if fh == pyfuse3.ROOT_INODE:
+			fh = 'root'
 
-		# only one entry
-		if start_id == 0:
-			pyfuse3.readdir_reply(
-				token, self.hello_name, await self.getattr(self.hello_inode), 1)
+		ls = self.course.ls(fh)
+
+		for i in range(start_id, len(ls)):
+			item = ls[i]
+
+			if 'name' in item:
+				name = item['name']
+			else:
+				name = item['filename']
+
+			pyfuse3.readdir_reply(token, bytes(name, 'utf-8'), await self.getattr(item['id']), i + 1)
+
 		return
 
 	async def open(self, inode, flags, ctx):
@@ -100,6 +113,7 @@ class TestFs(pyfuse3.Operations):
 			raise pyfuse3.FUSEError(errno.ENOENT)
 		if flags & os.O_RDWR or flags & os.O_WRONLY:
 			raise pyfuse3.FUSEError(errno.EACCES)
+
 		return pyfuse3.FileInfo(fh=inode)
 
 	async def read(self, fh, off, size):
@@ -138,7 +152,7 @@ def main():
 	options = parse_args()
 	init_logging(options.debug)
 
-	testfs = TestFs()
+	testfs = TestFs(34541)
 	fuse_options = set(pyfuse3.default_options)
 	fuse_options.add('fsname=hello')
 	if options.debug_fuse:
