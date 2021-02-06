@@ -49,12 +49,21 @@ class CanvasCourseFiles():
 
 	def get_item(self, item_id):
 		try:
-			return (Item.FOLDER, self.get_folder(item_id))
+			return self.get_folder(item_id)
 		except FileNotFoundError:
 			try:
-				return (Item.FILE, self.get_file(item_id))
+				return self.get_file(item_id)
 			except FileNotFoundError:
 				return None
+
+	@staticmethod
+	def item_type(item):
+		if 'name' in item:
+			return Item.FOLDER
+		if 'filename' in item:
+			return Item.FILE
+
+		return None
 
 	def _ls_files(self, folder_id):
 		resolved_path = self.get_folder(folder_id)

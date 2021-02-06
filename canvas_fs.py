@@ -59,13 +59,18 @@ class TestFs(pyfuse3.Operations):
 		self.hello_inode = 2
 		self.hello_data = b"hello world\n"
 
-	async def getattr(self, inode, ctx=None):
+	async def getattr(self, inode, ctx=None, **kwargs):
 		entry = pyfuse3.EntryAttributes()
 		if inode == pyfuse3.ROOT_INODE:
 			entry.st_mode = (stat.S_IFDIR | 0o755)
 			entry.st_size = 0
 		else:
-			item_type, item = self.course.get_item(inode)
+			if 'item' in kwargs:
+				item = kwargs['item']
+			else:
+				item = self.course.get_item(inode)
+
+			item_type = CanvasCourseFiles.item_type(item)
 
 			if item_type == Item.FOLDER:
 				entry.st_mode = (stat.S_IFDIR | 0o755)
@@ -110,7 +115,12 @@ class TestFs(pyfuse3.Operations):
 			else:
 				name = item['filename']
 
-			pyfuse3.readdir_reply(token, bytes(name, 'utf-8'), await self.getattr(item['id']), i + 1)
+			pyfuse3.readdir_reply(
+				token,
+				bytes(name, 'utf-8'),
+				await self.getattr(item['id'], item=item),
+				i + 1
+			)
 
 		return
 
