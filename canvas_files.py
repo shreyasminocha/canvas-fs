@@ -18,8 +18,8 @@ class CanvasCourseFiles():
 		)
 		self.course_id = course_id
 
-	def resolve_path(self, path):
-		url = f'{API_URL}/courses/{self.course_id}/folders/by_path/{path}'
+	def get_folder(self, folder_id):
+		url = f'{API_URL}/courses/{self.course_id}/folders/{folder_id}'
 		response = self.api.get(url)
 
 		if response.status_code == requests.codes.unauthorized:
@@ -28,28 +28,28 @@ class CanvasCourseFiles():
 		if response.status_code == requests.codes.not_found:
 			raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), '$filename')
 
-		return response.json()[-1]
+		return response.json()
 
-	def _ls_files(self, path):
-		resolved_path = self.resolve_path(path)
+	def get_file(self, file_id):
+		pass
+
+	def _ls_files(self, folder_id):
+		resolved_path = self.get_folder(folder_id)
 		files = self.api.get(resolved_path['files_url'])
 
 		return files.json()
 
-	def _ls_folders(self, path):
-		resolved_path = self.resolve_path(path)
+	def _ls_folders(self, folder_id):
+		resolved_path = self.get_folder(folder_id)
 		folders = self.api.get(resolved_path['folders_url'])
 
 		return folders.json()
 
-	def ls(self, path):
-		files = self._ls_files(path)
-		folders = self._ls_folders(path)
+	def ls(self, folder_id):
+		files = self._ls_files(folder_id)
+		folders = self._ls_folders(folder_id)
 
 		return files + folders
 
-	def get_file(self, path):
-		resolved_path = self.resolve_path(path)
-
 math211 = CanvasCourseFiles(34541)
-print(math211.ls('/'))
+print(math211.ls('root'))
