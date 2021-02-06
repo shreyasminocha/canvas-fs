@@ -31,7 +31,16 @@ class CanvasCourseFiles():
 		return response.json()
 
 	def get_file(self, file_id):
-		pass
+		url = f'{API_URL}/courses/{self.course_id}/files/{file_id}'
+		response = self.api.get(url)
+
+		if response.status_code == requests.codes.unauthorized:
+			raise ConnectionError()
+
+		if response.status_code == requests.codes.not_found:
+			raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), '$filename')
+
+		return response.json()
 
 	def _ls_files(self, folder_id):
 		resolved_path = self.get_folder(folder_id)
