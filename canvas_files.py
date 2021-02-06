@@ -82,6 +82,3 @@ class CanvasCourseFiles():
 		folders = self._ls_folders(folder_id)
 
 		return files + folders
-
-math211 = CanvasCourseFiles(34541)
-print(math211.ls('root'))
