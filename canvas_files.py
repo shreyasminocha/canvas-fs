@@ -1,5 +1,6 @@
 import errno
 import os
+import enum
 
 import requests
 from dotenv import load_dotenv
@@ -9,6 +10,10 @@ load_dotenv()
 CANVAS_URL = os.getenv('CANVAS_URL')
 ACCESS_TOKEN = os.getenv('ACCESS_TOKEN')
 API_URL = f'{CANVAS_URL}/api/v1'
+
+class Item(enum.Enum):
+	FOLDER = 1
+	FILE = 2
 
 class CanvasCourseFiles():
 	def __init__(self, course_id):
@@ -41,6 +46,15 @@ class CanvasCourseFiles():
 			raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), '$filename')
 
 		return response.json()
+
+	def get_item(self, item_id):
+		try:
+			return (Item.FOLDER, self.get_folder(item_id))
+		except FileNotFoundError:
+			try:
+				return (Item.FILE, self.get_file(item_id))
+			except FileNotFoundError:
+				return None
 
 	def _ls_files(self, folder_id):
 		resolved_path = self.get_folder(folder_id)

@@ -39,7 +39,7 @@ import errno
 import pyfuse3
 import trio
 
-from canvas_files import CanvasCourseFiles
+from canvas_files import CanvasCourseFiles, Item
 
 try:
 	import faulthandler
@@ -65,8 +65,14 @@ class TestFs(pyfuse3.Operations):
 			entry.st_mode = (stat.S_IFDIR | 0o755)
 			entry.st_size = 0
 		else:
-			entry.st_mode = (stat.S_IFREG | 0o644)
-			entry.st_size = 80
+			item_type, item = self.course.get_item(inode)
+
+			if item_type == Item.FOLDER:
+				entry.st_mode = (stat.S_IFDIR | 0o755)
+				entry.st_size = 0
+			elif item_type == Item.FILE:
+				entry.st_mode = (stat.S_IFREG | 0o644)
+				entry.st_size = item['size']
 
 		stamp = int(1438467123.985654 * 1e9)
 		entry.st_atime_ns = stamp
