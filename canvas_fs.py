@@ -118,3 +118,6 @@ class CanvasFs(pyfuse3.Operations):
 		downloaded_file = await self.course.download_file(file_url)
 
 		return downloaded_file[off:off+size]
+
+	async def release(self, fd):
+		pass
