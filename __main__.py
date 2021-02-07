@@ -35,6 +35,7 @@ def init_logging(debug=False):
 def parse_args():
 	parser = ArgumentParser()
 
+	parser.add_argument('course_id', type=int, help='The ID of the course to be mounted')
 	parser.add_argument('mountpoint', type=str, help='Where to mount the file system')
 	parser.add_argument('--debug', action='store_true', default=False, help='Enable debugging output')
 	parser.add_argument('--debug-fuse', action='store_true', default=False, help='Enable FUSE debugging output')
@@ -43,7 +44,7 @@ def parse_args():
 options = parse_args()
 init_logging(options.debug)
 
-canvas_fs = CanvasFs(34541)
+canvas_fs = CanvasFs(options.course_id)
 fuse_options = set(pyfuse3.default_options)
 fuse_options.add('fsname=canvas')
 
