@@ -52,10 +52,19 @@ class CanvasFs(pyfuse3.Operations):
 		return self.getattr(self.hello_inode)
 
 	async def opendir(self, inode, ctx):
-		if inode != pyfuse3.ROOT_INODE:
+		if inode == pyfuse3.ROOT_INODE:
+			return inode
+
+		try:
+			item = self.course.get_item(inode)
+			item_type = CanvasCourseFiles.item_type(item)
+		except FileNotFoundError:
 			raise pyfuse3.FUSEError(errno.ENOENT)
 
-		return inode
+		if item_type == Item.FOLDER:
+			return inode
+
+		raise pyfuse3.FUSEError(errno.ENOENT)
 
 	async def readdir(self, fh, start_id, token):
 		if fh == pyfuse3.ROOT_INODE:
