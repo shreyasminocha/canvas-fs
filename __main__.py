@@ -3,6 +3,7 @@
 
 import logging
 from argparse import ArgumentParser
+import traceback
 
 import pyfuse3
 import trio
@@ -56,4 +57,6 @@ try:
 except KeyboardInterrupt:
 	pyfuse3.close()
 except:
-	pyfuse3.close(unmount=False)
+	traceback.print_exc()
+	pyfuse3.close()
+	exit(1)
