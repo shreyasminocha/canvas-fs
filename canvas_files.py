@@ -82,3 +82,7 @@ class CanvasCourseFiles():
 		folders = self._ls_folders(folder_id)
 
 		return files + folders
+
+	async def download_file(self, file_url):
+		data = self.api.get(file_url, stream=True)
+		return data.raw.read()

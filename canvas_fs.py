@@ -12,10 +12,6 @@ class CanvasFs(pyfuse3.Operations):
 		super(CanvasFs, self).__init__()
 		self.course = CanvasCourseFiles(course_id)
 
-		self.hello_name = b'message'
-		self.hello_inode = 2
-		self.hello_data = b'hello world\n'
-
 	async def getattr(self, inode, ctx=None, **kwargs):
 		entry = pyfuse3.EntryAttributes()
 
@@ -53,10 +49,21 @@ class CanvasFs(pyfuse3.Operations):
 		return entry
 
 	async def lookup(self, parent_inode, name, ctx=None):
-		if parent_inode != pyfuse3.ROOT_INODE or name != self.hello_name:
+		if parent_inode == pyfuse3.ROOT_INODE:
+			parent_inode = 'root'
+
+		parent_folder_files = self.course._ls_files(parent_inode)
+
+		found_file = None
+		for file in parent_folder_files:
+			if file['filename'] == name.decode('utf-8'):
+				found_file = file
+				break
+
+		if found_file is None:
 			raise pyfuse3.FUSEError(errno.ENOENT)
 
-		return self.getattr(self.hello_inode)
+		return await self.getattr(found_file['id'], item=found_file)
 
 	async def opendir(self, inode, ctx):
 		if inode == pyfuse3.ROOT_INODE:
@@ -91,13 +98,23 @@ class CanvasFs(pyfuse3.Operations):
 			)
 
 	async def open(self, inode, flags, ctx):
-		if inode != self.hello_inode:
+		try:
+			file = self.course.get_file(inode)
+		except:
 			raise pyfuse3.FUSEError(errno.ENOENT)
+
 		if flags & os.O_RDWR or flags & os.O_WRONLY:
 			raise pyfuse3.FUSEError(errno.EACCES)
 
 		return pyfuse3.FileInfo(fh=inode)
 
 	async def read(self, fh, off, size):
-		assert fh == self.hello_inode
-		return self.hello_data[off:off+size]
+		try:
+			file = self.course.get_file(fh)
+		except:
+			raise pyfuse3.FUSEError(errno.ENOENT)
+
+		file_url = file['url']
+		downloaded_file = await self.course.download_file(file_url)
+
+		return downloaded_file[off:off+size]
