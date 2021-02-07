@@ -1,8 +1,10 @@
 async-generator==1.10
 attrs==20.3.0
+CacheControl==0.12.6
 certifi==2020.12.5
 chardet==4.0.0
 idna==2.10
+msgpack==1.0.2
 outcome==1.1.0
 pyfuse3==3.2.0
 python-dotenv==0.15.0

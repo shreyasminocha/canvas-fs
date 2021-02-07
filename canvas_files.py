@@ -3,6 +3,7 @@ import os
 import enum
 
 import requests
+from cachecontrol import CacheControl
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -17,10 +18,10 @@ class Item(enum.Enum):
 
 class CanvasCourseFiles():
 	def __init__(self, course_id):
-		self.api = requests.Session()
-		self.api.headers.update(
-			{'Authorization': f'Bearer {ACCESS_TOKEN}'}
-		)
+		api = requests.Session()
+		api.headers['Authorization'] = f'Bearer {ACCESS_TOKEN}'
+
+		self.api = CacheControl(api)
 		self.course_id = course_id
 
 	def get_folder(self, folder_id):
