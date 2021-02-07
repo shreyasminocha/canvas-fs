@@ -4,7 +4,7 @@ import errno
 
 import pyfuse3
 
-from canvas_files import CanvasCourseFiles, Item
+from .canvas_files import CanvasCourseFiles, Item
 
 class CanvasFs(pyfuse3.Operations):
 	def __init__(self, course_id):

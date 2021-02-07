@@ -7,7 +7,7 @@ from argparse import ArgumentParser
 import pyfuse3
 import trio
 
-from canvas_fs import CanvasFs
+from .canvas_fs import CanvasFs
 
 try: import faulthandler
 except ImportError: pass
