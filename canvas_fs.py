@@ -5,6 +5,7 @@ import errno
 import pyfuse3
 
 from .canvas_files import CanvasCourseFiles, Item
+from .utilities import iso_to_unix
 
 class CanvasFs(pyfuse3.Operations):
 	def __init__(self, course_id):
@@ -17,15 +18,17 @@ class CanvasFs(pyfuse3.Operations):
 
 	async def getattr(self, inode, ctx=None, **kwargs):
 		entry = pyfuse3.EntryAttributes()
+
 		if inode == pyfuse3.ROOT_INODE:
 			entry.st_mode = (stat.S_IFDIR | 0o755)
 			entry.st_size = 0
-		else:
-			if 'item' in kwargs:
-				item = kwargs['item']
-			else:
-				item = self.course.get_item(inode)
 
+			entry.st_atime_ns = int(1 * 1e9)
+			entry.st_mtime_ns = int(1 * 1e9)
+			entry.st_ctime_ns = int(1 * 1e9)
+
+		else:
+			item = kwargs.get('item') or self.course.get_item(inode)
 			item_type = CanvasCourseFiles.item_type(item)
 
 			if item_type == Item.FOLDER:
@@ -35,10 +38,14 @@ class CanvasFs(pyfuse3.Operations):
 				entry.st_mode = (stat.S_IFREG | 0o644)
 				entry.st_size = item['size']
 
-		stamp = int(1438467123.985654 * 1e9)
-		entry.st_atime_ns = stamp
-		entry.st_ctime_ns = stamp
-		entry.st_mtime_ns = stamp
+			updated = item['updated_at']
+			modified = item.get('modified_at') or item.get('updated_at')
+			created = item['created_at']
+
+			entry.st_atime_ns = int(iso_to_unix(updated) * 1e9)
+			entry.st_mtime_ns = int(iso_to_unix(modified) * 1e9)
+			entry.st_ctime_ns = int(iso_to_unix(created) * 1e9)
+
 		entry.st_gid = os.getgid()
 		entry.st_uid = os.getuid()
 		entry.st_ino = inode
@@ -74,11 +81,7 @@ class CanvasFs(pyfuse3.Operations):
 
 		for i in range(start_id, len(ls)):
 			item = ls[i]
-
-			if 'name' in item:
-				name = item['name']
-			else:
-				name = item['filename']
+			name = item.get('name') or item.get('filename')
 
 			pyfuse3.readdir_reply(
 				token,
