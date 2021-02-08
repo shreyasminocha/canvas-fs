@@ -8,6 +8,8 @@ from .canvas_files import CanvasCourseFiles, Item
 from .utilities import iso_to_unix
 
 class CanvasFs(pyfuse3.Operations):
+	supports_dot_lookup = False
+
 	def __init__(self, course_id):
 		super(CanvasFs, self).__init__()
 		self.course = CanvasCourseFiles(course_id)
