@@ -108,16 +108,16 @@ class CanvasFs(pyfuse3.Operations):
 
 		return pyfuse3.FileInfo(fh=inode)
 
-	async def read(self, fh, off, size):
+	async def read(self, fh, offset, size):
 		try:
 			file = self.course.get_file(fh)
 		except:
 			raise pyfuse3.FUSEError(errno.ENOENT)
 
 		file_url = file['url']
-		downloaded_file = await self.course.download_file(file_url)
+		downloaded_chunk = await self.course.download_file(file_url, offset, size)
 
-		return downloaded_file[off:off+size]
+		return downloaded_chunk
 
 	async def release(self, fd):
 		pass

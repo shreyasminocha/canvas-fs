@@ -84,6 +84,13 @@ class CanvasCourseFiles():
 
 		return files + folders
 
-	async def download_file(self, file_url):
-		data = self.api.get(file_url, stream=True)
+	async def download_file(self, file_url, offset, size):
+		start, end = offset, offset + size - 1
+
+		data = self.api.get(
+			file_url,
+			headers={'range': f'bytes={start}-{end}'},
+			stream=True
+		)
+
 		return data.raw.read()
