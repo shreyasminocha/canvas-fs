@@ -58,7 +58,7 @@ class CanvasFs(pyfuse3.Operations):
 
 		found_file = None
 		for file in parent_folder_files:
-			if file['filename'] == name.decode('utf-8'):
+			if file['display_name'] == name.decode('utf-8'):
 				found_file = file
 				break
 
@@ -90,7 +90,7 @@ class CanvasFs(pyfuse3.Operations):
 
 		for i in range(start_id, len(ls)):
 			item = ls[i]
-			name = item.get('name') or item.get('filename')
+			name = item.get('name') or item.get('display_name')
 
 			pyfuse3.readdir_reply(
 				token,

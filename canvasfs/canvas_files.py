@@ -61,7 +61,7 @@ class CanvasCourseFiles():
 	def item_type(item):
 		if 'name' in item:
 			return Item.FOLDER
-		if 'filename' in item:
+		if 'display_name' in item:
 			return Item.FILE
 
 		return None
