@@ -1,5 +1,7 @@
 # Canvas LMS FUSE Filesystem
 
+![A Canvas "Files" page on one side and `ls -l` showing the same files on the other side](media/screenshot.png)
+
 This is, at the moment, just a proof-of-concept.
 
 ## Features
