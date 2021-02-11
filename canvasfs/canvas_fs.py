@@ -4,15 +4,15 @@ import errno
 
 import pyfuse3
 
-from .canvas_files import CanvasCourseFiles, Item
-from .utilities import iso_to_unix
+from .canvas_files import CanvasFiles
+from .utilities import Context, Item, iso_to_unix
 
 class CanvasFs(pyfuse3.Operations):
 	supports_dot_lookup = False
 
-	def __init__(self, course_id):
+	def __init__(self, context_id, context=Context.COURSE):
 		super(CanvasFs, self).__init__()
-		self.course = CanvasCourseFiles(course_id)
+		self.context = CanvasFiles(context_id, context)
 
 	async def getattr(self, inode, ctx=None, **kwargs):
 		entry = pyfuse3.EntryAttributes()
@@ -26,8 +26,8 @@ class CanvasFs(pyfuse3.Operations):
 			entry.st_ctime_ns = int(1 * 1e9)
 
 		else:
-			item = kwargs.get('item') or self.course.get_item(inode)
-			item_type = CanvasCourseFiles.item_type(item)
+			item = kwargs.get('item') or self.context.get_item(inode)
+			item_type = CanvasFiles.item_type(item)
 
 			if item_type == Item.FOLDER:
 				entry.st_mode = (stat.S_IFDIR | 0o755)
@@ -54,7 +54,7 @@ class CanvasFs(pyfuse3.Operations):
 		if parent_inode == pyfuse3.ROOT_INODE:
 			parent_inode = 'root'
 
-		parent_folder_files = self.course._ls_files(parent_inode)
+		parent_folder_files = self.context._ls_files(parent_inode)
 
 		found_file = None
 		for file in parent_folder_files:
@@ -72,8 +72,8 @@ class CanvasFs(pyfuse3.Operations):
 			return inode
 
 		try:
-			item = self.course.get_item(inode)
-			item_type = CanvasCourseFiles.item_type(item)
+			item = self.context.get_item(inode)
+			item_type = CanvasFiles.item_type(item)
 		except FileNotFoundError:
 			raise pyfuse3.FUSEError(errno.ENOENT)
 
@@ -86,7 +86,7 @@ class CanvasFs(pyfuse3.Operations):
 		if fh == pyfuse3.ROOT_INODE:
 			fh = 'root'
 
-		ls = self.course.ls(fh)
+		ls = self.context.ls(fh)
 
 		for i in range(start_id, len(ls)):
 			item = ls[i]
@@ -101,7 +101,7 @@ class CanvasFs(pyfuse3.Operations):
 
 	async def open(self, inode, flags, ctx):
 		try:
-			file = self.course.get_file(inode)
+			file = self.context.get_file(inode)
 		except:
 			raise pyfuse3.FUSEError(errno.ENOENT)
 
@@ -112,12 +112,12 @@ class CanvasFs(pyfuse3.Operations):
 
 	async def read(self, fh, offset, size):
 		try:
-			file = self.course.get_file(fh)
+			file = self.context.get_file(fh)
 		except:
 			raise pyfuse3.FUSEError(errno.ENOENT)
 
 		file_url = file['url']
-		downloaded_chunk = await self.course.download_file(file_url, offset, size)
+		downloaded_chunk = await self.context.download_file(file_url, offset, size)
 
 		return downloaded_chunk
 

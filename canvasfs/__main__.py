@@ -9,6 +9,7 @@ import pyfuse3
 import trio
 
 from .canvas_fs import CanvasFs
+from .utilities import Context
 
 try: import faulthandler
 except ImportError: pass
@@ -33,18 +34,23 @@ def init_logging(debug=False):
 	root_logger.addHandler(handler)
 
 def parse_args():
-	parser = ArgumentParser()
+	parser = ArgumentParser(allow_abbrev=False)
 
-	parser.add_argument('course_id', type=int, help='The ID of the course to be mounted')
-	parser.add_argument('mountpoint', type=str, help='Where to mount the file system')
-	parser.add_argument('--debug', action='store_true', default=False, help='Enable debugging output')
-	parser.add_argument('--debug-fuse', action='store_true', default=False, help='Enable FUSE debugging output')
+	parser.add_argument('context_id', type=int, help='the ID of the context to be mounted')
+	parser.add_argument('mountpoint', type=str, help='path to mount the FS at')
+
+	parser.add_argument('-c', '--context', choices=['course', 'user', 'group'], default='course', help='canvas context type')
+	parser.add_argument('--debug', action='store_true', default=False, help='enable debugging output')
+	parser.add_argument('--debug-fuse', action='store_true', default=False, help='enable FUSE debugging output')
+
 	return parser.parse_args()
 
 options = parse_args()
 init_logging(options.debug)
 
-canvas_fs = CanvasFs(options.course_id)
+context = Context(options.context + 's')
+
+canvas_fs = CanvasFs(options.context_id, context)
 fuse_options = set(pyfuse3.default_options)
 fuse_options.add('fsname=canvas')
 

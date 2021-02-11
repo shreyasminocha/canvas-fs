@@ -9,8 +9,8 @@ This is, at the moment, just a proof-of-concept.
 - [x] read
 - [ ] write
 - [x] mount courses
-- [ ] mount groups
-- [ ] mount users
+- [x] mount groups
+- [x] mount users
 
 ## Getting started
 
