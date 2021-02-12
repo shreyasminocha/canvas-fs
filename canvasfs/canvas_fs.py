@@ -18,8 +18,8 @@ class CanvasFs(pyfuse3.Operations):
 		entry = pyfuse3.EntryAttributes()
 
 		if inode == pyfuse3.ROOT_INODE:
-			entry.st_mode = (stat.S_IFDIR | 0o755)
-			entry.st_size = 0
+			entry.st_mode = (stat.S_IFDIR | 0o555)
+			entry.st_size = 4096
 
 			entry.st_atime_ns = int(1 * 1e9)
 			entry.st_mtime_ns = int(1 * 1e9)
@@ -30,10 +30,10 @@ class CanvasFs(pyfuse3.Operations):
 			item_type = CanvasFiles.item_type(item)
 
 			if item_type == Item.FOLDER:
-				entry.st_mode = (stat.S_IFDIR | 0o755)
-				entry.st_size = 0
+				entry.st_mode = (stat.S_IFDIR | 0o555)
+				entry.st_size = 4096
 			elif item_type == Item.FILE:
-				entry.st_mode = (stat.S_IFREG | 0o644)
+				entry.st_mode = (stat.S_IFREG | 0o444)
 				entry.st_size = item['size']
 
 			updated = item['updated_at']

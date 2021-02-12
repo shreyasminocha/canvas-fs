@@ -52,7 +52,7 @@ context = Context(options.context + 's')
 
 canvas_fs = CanvasFs(options.context_id, context)
 fuse_options = set(pyfuse3.default_options)
-fuse_options.add('fsname=canvas')
+fuse_options.add('fsname=canvasfs')
 
 if options.debug_fuse:
 	fuse_options.add('debug')
