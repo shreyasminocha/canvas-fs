@@ -45,25 +45,29 @@ def parse_args():
 
 	return parser.parse_args()
 
-options = parse_args()
-init_logging(options.debug)
+def main():
+	options = parse_args()
+	init_logging(options.debug)
 
-context = Context(options.context + 's')
+	context = Context(options.context + 's')
 
-canvas_fs = CanvasFs(options.context_id, context)
-fuse_options = set(pyfuse3.default_options)
-fuse_options.add('fsname=canvasfs')
+	canvas_fs = CanvasFs(options.context_id, context)
+	fuse_options = set(pyfuse3.default_options)
+	fuse_options.add('fsname=canvasfs')
 
-if options.debug_fuse:
-	fuse_options.add('debug')
+	if options.debug_fuse:
+		fuse_options.add('debug')
 
-pyfuse3.init(canvas_fs, options.mountpoint, fuse_options)
+	pyfuse3.init(canvas_fs, options.mountpoint, fuse_options)
 
-try:
-	trio.run(pyfuse3.main)
-except KeyboardInterrupt:
-	pyfuse3.close()
-except:
-	traceback.print_exc()
-	pyfuse3.close()
-	exit(1)
+	try:
+		trio.run(pyfuse3.main)
+	except KeyboardInterrupt:
+		pyfuse3.close()
+	except:
+		traceback.print_exc()
+		pyfuse3.close()
+		exit(1)
+
+if __name__ == '__main__':
+	main()
