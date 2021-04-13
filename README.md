@@ -36,8 +36,7 @@ Tested with fuse3 on Arch Linux. It *should* also work on macOS with [macFuse](h
 
 ## License
 
-Licensed under the [MIT License](https://l.shreyasminocha.me/mit/2021-)
-
+Licensed under the [MIT License](LICENSE)
 
 ## Contributions
 
